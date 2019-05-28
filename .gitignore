@@ -65,3 +65,6 @@ assets/dist/
 
 # Temporary folder
 tmp/
+
+# IntelliJ WebStorm project files
+/.idea/

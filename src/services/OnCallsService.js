@@ -44,6 +44,9 @@ export class OnCallsService {
 
         const onCall = OnCall.fromApiRecord(record, schedule);
 
+        // eslint-disable-next-line no-await-in-loop
+        onCall.contactMethods = await this.client.getContactMethods(onCall.userId);
+
         // Needed because of full override.
         if (incidents.has(schedule.id)) {
           onCall.setIncident(incidents.get(schedule.id));

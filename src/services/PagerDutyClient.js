@@ -2,10 +2,12 @@
 import { URL, URLSearchParams } from 'url';
 
 import fetch from 'node-fetch';
+import logger from 'winston';
 
 // ------- Internal imports ----------------------------------------------------
 
 import { PagerBeautyError } from '../errors';
+import { ContactMethod } from '../models/ContactMethod';
 
 export class PagerDutyClientError extends PagerBeautyError {}
 export class PagerDutyClientRequestError extends PagerDutyClientError {}
@@ -30,6 +32,7 @@ export class PagerDutyClientResponseKnownError extends PagerDutyClientError {
 export const INCLUDE_USERS = 'users';
 export const INCLUDE_SCHEDULES = 'schedules';
 export const INCLUDE_ESCALATION_POLICIES = 'escalation_policies';
+export const INCLUDE_CONTACT_METHODS = 'contact_methods';
 
 export const INCIDENT_STATUS_TRIGGERED = 'triggered';
 export const INCIDENT_STATUS_ACKNOWLEDGED = 'acknowledged';
@@ -71,6 +74,29 @@ export class PagerDutyClient {
     }
 
     return response.oncalls;
+  }
+
+  async getContactMethods(userId) {
+    try {
+      const searchParams = new URLSearchParams();
+      searchParams.append('limit', 100);
+      const response = await this.get(`users/${userId}/contact_methods`, searchParams);
+      const contactMethods = [];
+      if ('contact_methods' in response) {
+        for (const contactMethod of response.contact_methods) {
+          contactMethods.push(ContactMethod.fromApiRecord(contactMethod));
+        }
+      } else {
+        logger.warn(`No contact methods found for user  ${userId}`);
+      }
+      logger.debug(`Added contact methods for user ${userId}`);
+      logger.silly(`${contactMethods.toString()}`);
+      return contactMethods;
+    } catch (e) {
+      logger.warn(`Failed to retrieve contact methods for user ${userId}`);
+      logger.silly(`${e}`);
+      return [];
+    }
   }
 
   async getOnCallForSchedule(scheduleId, include = false) {

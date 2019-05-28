@@ -176,6 +176,10 @@ a {
 .schedule.state_not_found { @include schedule_state($yellow); }
 .schedule.state_active_incident { @include schedule_state($red); }
 
+.contact_methods ul {
+  list-style: none;
+  text-align: left;
+}
 .theme-grafana {
   a { color: $textGrey; }
   &.filled_row { color: $textGrey; }

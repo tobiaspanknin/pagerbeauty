@@ -12,7 +12,6 @@ import { PagerBeautyFetchNotFoundUiError } from '../ui-errors';
 import { StatusIndicatorView } from './StatusIndicatorView';
 
 // ------- OnCallView ----------------------------------------------------------
-
 export class OnCallView extends React.Component {
   render() {
     const { isLoaded, data, error, isFetching } = this.props;
@@ -36,6 +35,7 @@ export class OnCallView extends React.Component {
 
     let onCall;
     let userInfo;
+    let contactMethods;
 
     let state;
     if (!is404) {
@@ -44,6 +44,11 @@ export class OnCallView extends React.Component {
         name: onCall.userName,
         url: onCall.userURL,
         avatar: onCall.userAvatarSized(),
+        contactMethods: onCall.contactMethods,
+      };
+      contactMethods = {
+        email: onCall.getContactMethod('email'),
+        phone: onCall.getContactMethod('phone'),
       };
       state = onCall.incident ? 'active_incident' : 'normal';
     } else {
@@ -89,6 +94,10 @@ export class OnCallView extends React.Component {
         { /* User info */ }
         <OnCallScheduleRowView equalSpacing>
           <OnCallUserInfoView userInfo={userInfo} />
+        </OnCallScheduleRowView>
+
+        <OnCallScheduleRowView equalSpacing>
+          <OnCallContactMethodsView contactMethods={contactMethods} />
         </OnCallScheduleRowView>
 
         { /* Status row */ }
@@ -278,6 +287,7 @@ OnCallUserInfoView.propTypes = {
     name: PropTypes.string,
     url: PropTypes.string,
     avatar: PropTypes.string,
+    contactMethods: PropTypes.array,
   }),
 };
 
@@ -285,6 +295,43 @@ OnCallUserInfoView.defaultProps = {
   userInfo: null,
 };
 
+// ------- OnCallContactMethodsView -----------------------------------------
+export class OnCallContactMethodsView extends React.Component {
+  render() {
+    const { contactMethods } = this.props;
+    return (
+      <React.Fragment>
+        <div className={`contact_methods ${!contactMethods ? 'error' : ''}`}>
+          {contactMethods ? (
+            <ul>
+              <li className={`contact_methods_email ${!contactMethods ? 'error' : ''}`}>
+                { `Email: ${contactMethods.email}` }
+              </li>
+              <li className={`contact_methods_phone ${!contactMethods ? 'error' : ''}`}>
+                { `Phone: ${contactMethods.phone}` }
+              </li>
+            </ul>
+          ) : (
+            'No contact methods known for this user'
+          )}
+        </div>
+      </React.Fragment>
+    );
+  }
+}
+OnCallContactMethodsView.propTypes = {
+  contactMethods: PropTypes.shape({
+    email: PropTypes.string,
+    phone: PropTypes.string,
+  }),
+};
+
+OnCallContactMethodsView.defaultProps = {
+  contactMethods: {
+    email: 'unknown',
+    phone: 'unknown',
+  },
+};
 
 // ------- OnCallDatesRowView -----------------------------------------------
 

@@ -21,6 +21,7 @@ export class OnCall {
     dateEnd,
     schedule,
     incident = null,
+    contactMethods = null,
   }) {
     this.userId = userId;
     this.userName = userName;
@@ -28,6 +29,7 @@ export class OnCall {
     this.userURL = userURL;
     this.dateStart = DateTime.fromISO(dateStart);
     this.dateEnd = DateTime.fromISO(dateEnd);
+    this.contactMethods = (contactMethods === null) ? [] : contactMethods;
     if (schedule instanceof Schedule) {
       this.schedule = schedule;
     } else {
@@ -43,6 +45,10 @@ export class OnCall {
   }
 
   serialize() {
+    const serializedContactMethods = [];
+    for (const contactMethod of this.contactMethods) {
+      serializedContactMethods.push(contactMethod.serialize());
+    }
     return {
       userId: this.userId,
       userName: this.userName,
@@ -52,6 +58,7 @@ export class OnCall {
       dateEnd: this.dateEnd.toUTC(),
       schedule: this.schedule.serialize(),
       incident: this.incident ? this.incident.serialize() : null,
+      contactMethods: serializedContactMethods,
     };
   }
 
@@ -73,6 +80,18 @@ export class OnCall {
     searchParams.append('s', size);
     url.search = searchParams;
     return url.href;
+  }
+
+  getContactMethod(pattern) {
+    const re = new RegExp(`^${pattern}`, 'g');
+    let method = 'unknown';
+    for (const contactMethod of this.contactMethods) {
+      if (contactMethod.type.match(re)) {
+        method = contactMethod.address;
+        break;
+      }
+    }
+    return method;
   }
 
   static fromApiRecord(record, schedule) {
